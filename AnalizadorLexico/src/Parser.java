@@ -38,39 +38,37 @@ class Parser {
     }
 
     private Expression parseExpression() {
-        Token firstToken = advance(); // Advance without checking, expecting a number or variable
+        Token firstToken = advance(); // Avanza al siguiente token
 
-        // Simple check for a binary operation
+        // Checa que sea una operación matemática
         if (peek().getLexeme() == Token.Lexeme.PLUS || peek().getLexeme() == Token.Lexeme.MINUS ||
                 peek().getLexeme() == Token.Lexeme.MULTIPLICATION || peek().getLexeme() == Token.Lexeme.DIVISION) {
 
-            Token operator = advance(); // Operator token
-            Token secondToken = advance(); // Next number or variable
+            Token operator = advance();
+            Token secondToken = advance();
 
-            // Construct a binary expression
             return new Expression.Binary(new Expression.Literal(firstToken), operator, new Expression.Literal(secondToken));
         } else {
-            // Single number or variable
             return new Expression.Literal(firstToken);
         }
     }
 
 
     private Condition parseCondition() {
-        Expression leftOperand = parseExpression(); // Parse the left operand, which is an expression
+        Expression leftOperand = parseExpression(); //Comprueba que el operando de la izquierda sea una expresión
 
-        // Ensure the next token is a comparison operator
+        // Se aegura de que el siguiente token es un operador
         Token operator;
         if (peek().getLexeme() == Token.Lexeme.LESS_THAN || peek().getLexeme() == Token.Lexeme.LESS_EQUAL_THAN ||
                 peek().getLexeme() == Token.Lexeme.GREATER_THAN || peek().getLexeme() == Token.Lexeme.GRATER_EQUAL_THAN ||
                 peek().getLexeme() == Token.Lexeme.EQUAL_TO) {
 
-            operator = advance(); // Comparison operator token
+            operator = advance();
         } else {
             throw new ParseException("Expected comparison operator");
         }
 
-        Expression rightOperand = parseExpression(); // Parse the right operand, which is an expression
+        Expression rightOperand = parseExpression(); // Comprueba que el operando de la derecha sea una expresión
 
         return new Condition(leftOperand, operator, rightOperand);
     }
