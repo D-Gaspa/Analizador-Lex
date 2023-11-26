@@ -1,4 +1,3 @@
-import java.beans.Statement;
 import java.util.List;
 
 /**
@@ -22,25 +21,20 @@ class Parser {
 
     private void parseStatement() {
         Token currentToken = peek();
-        if (currentToken.getLexeme() == null) {
-            throw new ParseException("Null lexeme found in token: " + currentToken.getValue());
+        if (currentToken.getType() == Token.Type.VARIABLE) {
+            parseAssignmentStatement();
+        } else {
+            switch (currentToken.getLexeme()) {
+                case WHILE -> parseWhileStatement();
+                case IF -> parseIfStatement();
+                default -> throw new ParseException("Sytax error: unexpected token " + currentToken.getValue());
+            }
         }
-
-        switch (currentToken.getLexeme()) {
-            case WHILE:
-                parseWhileStatement();
-                break;
-            case IF:
-                parseIfStatement();
-                break;
-
-            default:
-                throw new ParseException("Sytax error: unexpected token " + currentToken.getValue());
-        }
-
-
-
-
+    }
+    private void parseAssignmentStatement() {
+        Token variableToken = consume(Token.Type.VARIABLE); // Consumir el nombre de la variable
+        consume(Token.Lexeme.ASIGN); // Consumir el operador '='
+        Expression expression = parseExpression(); // Parsear la expresión a la derecha del '='
     }
 
     private Expression parseExpression() {
@@ -66,7 +60,7 @@ class Parser {
         Expression leftOperand = parseExpression(); // Parse the left operand, which is an expression
 
         // Ensure the next token is a comparison operator
-        Token operator = null;
+        Token operator;
         if (peek().getLexeme() == Token.Lexeme.LESS_THAN || peek().getLexeme() == Token.Lexeme.LESS_EQUAL_THAN ||
                 peek().getLexeme() == Token.Lexeme.GREATER_THAN || peek().getLexeme() == Token.Lexeme.GRATER_EQUAL_THAN ||
                 peek().getLexeme() == Token.Lexeme.EQUAL_TO) {
@@ -143,6 +137,16 @@ class Parser {
             return advance();
         }
         throw new ParseException("Expected " + expectedLexeme + " but found " + peek().getType());
+    }
+    private Token consume(Token.Type expectedType) {
+        if (checkType(expectedType)) {
+            return advance();
+        }
+        throw new ParseException("Expected " + expectedType + " but found " + peek().getType());
+    }
+    private boolean checkType(Token.Type type) {
+        if (isAtEnd()) return false;
+        return peek().getType() == type;
     }
 
     public class ParseException extends RuntimeException {
