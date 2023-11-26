@@ -24,6 +24,15 @@ public class Main {
         for (Token token : tokens){
             System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
         }
+
+        // Parser initialization and syntax checking
+        Parser parser = new Parser(tokens);
+        try {
+            parser.parse(); // Parsing the token list
+            System.out.println("Parsing completed successfully.");
+        } catch (Parser.ParseException e) {
+            System.out.println("Parsing error: " + e.getMessage());
+        }
     }
 
     /**
