@@ -8,30 +8,51 @@ public class Main {
      * Método principal para iniciar el análisis léxico.
      * @param args Argumentos de línea de comandos (no utilizados).
      */
-    public static void main(String[] args){
+    public static void main(String[] args) throws SyntaxException {
+        final ArrayList<SyntaxException> errors = new ArrayList<>();
+
         // Entrada de ejemplo para el análisis léxico
-        String input = "while a < b do\n" +
-                "if f == var then\n" +
-                "b = c2 + 99\n" +
-                "else\n" +
-                "b = 37\n" +
-                "endif\n" +
+        String input = "a = b ;\n" +
+                "if a < b  then \n" +
+                "a = a + 1 ; \n" +
+                "b = 2+7) * 3- ;  \n" +
+                "endif \n";
+
+        String input1 = "while a < b do \n" +
+                "if f == var then \n" +
+                "b = c2 + 99 ; \n" +
+                "else \n" +
+                "b = 37 ; \n" +
+                "endif \n" +
                 "endwhile";
         System.out.println("Input: " + input);
 
         // Proceso de análisis léxico y obtención de tokens
-        ArrayList<Token> tokens = lex(input);
-        for (Token token : tokens){
-            System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
+
+        ArrayList<Token> tokens;
+
+        try {
+            tokens = lex(input,errors);
+            for (Token token : tokens){
+                //System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
+            }
+
+            // Parser initialization and syntax checking
+            Parser parser = new Parser(tokens, errors);
+            try {
+                parser.parse(); // Parsing the token list
+            } catch (SyntaxException e) {
+                errors.add(e);
+                //System.out.println("Error in parsing: " + e.getMessage());
+            }
+        } catch (SyntaxException e) {
+            errors.add(e);
+            //System.out.println("Error in tokenization: " + e.getMessage());
         }
 
-        // Parser initialization and syntax checking
-        Parser parser = new Parser(tokens);
-        try {
-            parser.parse(); // Parsing the token list
-            System.out.println("Parsing completed successfully.");
-        } catch (Parser.ParseException e) {
-            System.out.println("Parsing error: " + e.getMessage());
+
+        for (SyntaxException error : errors) {
+            System.out.println(error.getMessage());
         }
     }
 
@@ -40,48 +61,63 @@ public class Main {
      * @param input Cadena de entrada para analizar.
      * @return ArrayList de tokens encontrados en la entrada.
      */
-    private static ArrayList<Token> lex(String input) {
+    private static ArrayList<Token> lex(String input, ArrayList<SyntaxException> errors) throws SyntaxException {
         final ArrayList<Token> tokens = new ArrayList<>();
-        final StringTokenizer st = new StringTokenizer(input);
+        String[] lines = input.split("\\r?\\n"); // Split the input into lines
+        int lineNumber = 0;
 
-        while (st.hasMoreTokens()) {
-            String word = st.nextToken();
-            boolean flag = false;
+        for (String line : lines) {
+            lineNumber++; // Increment the line number for each new line
+            StringTokenizer st = new StringTokenizer(line, " \t", true); // Tokenize the line
 
-            // Procesamiento de cada tipo de token excepto VARIABLE
-            for (Token.Type tokenType : Token.Type.values()) {
-                if (tokenType == Token.Type.VARIABLE) {
-                    continue;
+            while (st.hasMoreTokens()) {
+                String word = st.nextToken();
+
+                if (word.trim().isEmpty()) {
+                    continue; // Skip whitespace
                 }
 
-                Pattern pattern = Pattern.compile(tokenType.pattern);
-                Matcher search = pattern.matcher(word);
-                if (search.find()) {
-                    Token token = new Token();
-                    token.setType(tokenType);
-                    token.setValue(word);
-                    matchLexeme(word, token);
-                    tokens.add(token);
-                    flag = true;
-                    break;
-                }
-            }
 
-            // Verificación final para el tipo VARIABLE
-            if (!flag) {
-                Pattern pattern = Pattern.compile(Token.Type.VARIABLE.pattern);
-                Matcher search = pattern.matcher(word);
-                if (search.find()) {
-                    Token token = new Token();
-                    token.setType(Token.Type.VARIABLE);
-                    token.setValue(word);
-                    tokens.add(token);
-                } else {
-                    // Si no se encuentra ningún tipo de token válido, se lanza una excepción
-                    throw new RuntimeException("Invalid token: " + word);
+                boolean matched = false;
+
+                // Process each type of token except VARIABLE
+                for (Token.Type tokenType : Token.Type.values()) {
+                    if (tokenType == Token.Type.VARIABLE) {
+                        continue;
+                    }
+
+                    Pattern pattern = Pattern.compile(tokenType.pattern);
+                    Matcher matcher = pattern.matcher(word);
+                    if (matcher.matches()) {
+                        Token token = new Token();
+                        token.setType(tokenType);
+                        token.setValue(word);
+                        token.setLineNumber(lineNumber);
+                        matchLexeme(word, token);
+                        tokens.add(token);
+                        matched = true;
+                        break;
+                    }
+                }
+
+                // Final check for the VARIABLE type
+                if (!matched) {
+                    Pattern variablePattern = Pattern.compile(Token.Type.VARIABLE.pattern);
+                    Matcher variableMatcher = variablePattern.matcher(word);
+                    if (variableMatcher.matches()) {
+                        Token token = new Token();
+                        token.setType(Token.Type.VARIABLE);
+                        token.setValue(word);
+                        token.setLineNumber(lineNumber);
+                        tokens.add(token);
+                    } else {
+                        // If no valid type of token is found, throw an exception
+                        errors.add(new SyntaxException("Syntax error: " + word + " at line " + lineNumber + " (token not recognized)"));
+                    }
                 }
             }
         }
+
         return tokens;
     }
 

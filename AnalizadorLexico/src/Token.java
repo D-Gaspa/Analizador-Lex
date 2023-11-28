@@ -6,6 +6,8 @@ public class Token {
     private String value; // Valor del token (cadena exacta encontrada en el input)
     private Type type;    // Tipo del token (enum Type)
     private Lexeme lexeme; // Lexema asociado al token (enum Lexeme)
+    private int lineNumber; // Número de línea en el que se encontró el token
+
 
     /**
      * Obtiene el tipo del token.
@@ -31,6 +33,17 @@ public class Token {
         return value;
     }
 
+    /**
+     * Obtiene el número de línea en el que se encontró el token.
+     * @param lineNumber número de línea en el que se encontró el token.
+     */
+    public void setLineNumber(int lineNumber) {this.lineNumber = lineNumber; }
+
+    /**
+     * Establece el número de línea en el que se encontró el token.
+     * @return  lineNumber El número de línea en el que se encontró el token.
+     */
+    public int getLineNumber() { return lineNumber; }
     /**
      * Establece el valor del token.
      * @param value El valor del token a establecer.
@@ -66,6 +79,8 @@ public class Token {
         CONDITIONAL_OPERAND("\\b(if|then|endif|else)\\b"), // Representa un operando condicional
         BOOLEAN_VALUE("\\b(true|false)\\b"),    // Representa un valor booleano
         LOOP("\\b(while|do|endwhile)\\b"),      // Representa un operador de bucle
+
+        END(";"),                     // Representa un operador de fin de programa
         VARIABLE("(?!\\b(if|then|endif|else|while|do|endwhile|true|false)\\b)[a-zA-Z_][a-zA-Z0-9_]*"); // Representa una variable
 
         public final String pattern; // Patrón de expresión regular para identificar el tipo de token
@@ -90,6 +105,7 @@ public class Token {
         PLUS("+"),
         MINUS("-"),
         MULTIPLICATION("*"),
+        SEMICOLON(";"),
         DIVISION("/"),
         EQUAL_TO("=="),
         LESS_THAN("<"),

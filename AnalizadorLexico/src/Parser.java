@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -6,20 +7,55 @@ import java.util.List;
 
 class Parser {
     private List<Token> tokens;
+    private ArrayList<SyntaxException> errors;
     private int currentPosition = 0;
 
     // Constructores y metódos
-    public Parser(List<Token> tokens) {
+    public Parser(List<Token> tokens, ArrayList<SyntaxException> errors) {
         this.tokens = tokens;
+        this.errors = errors;
     }
 
-    public void parse() {
+    public void parse()  throws SyntaxException{
         while (!isAtEnd()) {
-            parseStatement();
+            try {
+                parseStatement();
+            } catch (SyntaxException e) {
+                errors.add(e); // Add error to the list and continue parsing
+                //advance();
+                synchronize();
+            }
         }
     }
 
-    private void parseStatement() {
+    private void synchronize() {
+        while (!isAtEnd()) {
+
+            // Check if the current token is a good point to resume
+            if (isAtStatementBoundary(peek())) {
+                return; // Found a good point to resume
+            }
+
+            advance(); // Continue to the next token
+        }
+    }
+
+    private boolean isAtStatementBoundary(Token token) {
+        // Check if the token is a boundary of a statement
+        if (token.getLexeme() == null) {
+            return false; // Handle null lexeme
+        }
+        switch (token.getLexeme()) {
+            case IF:
+            case WHILE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
+    private void parseStatement()  throws SyntaxException {
         Token currentToken = peek();
         if (currentToken.getType() == Token.Type.VARIABLE) {
             parseAssignmentStatement();
@@ -27,17 +63,19 @@ class Parser {
             switch (currentToken.getLexeme()) {
                 case WHILE -> parseWhileStatement();
                 case IF -> parseIfStatement();
-                default -> throw new ParseException("Sytax error: unexpected token " + currentToken.getValue());
+                default -> throw new SyntaxException("Syntax error: Unexpected token " + currentToken.getValue() + " at line " + currentToken.getLineNumber());
             }
         }
     }
-    private void parseAssignmentStatement() {
+    private void parseAssignmentStatement()  throws SyntaxException {
         Token variableToken = consume(Token.Type.VARIABLE); // Consumir el nombre de la variable
         consume(Token.Lexeme.ASIGN); // Consumir el operador '='
         Expression expression = parseExpression(); // Parsear la expresión a la derecha del '='
+        consume(Token.Lexeme.SEMICOLON); // Consumir el ';'
+        System.out.println("Valid assignment statement");
     }
 
-    private Expression parseExpression() {
+    private Expression parseExpression() throws SyntaxException {
         Token firstToken = advance(); // Avanza al siguiente token
 
         // Checa que sea una operación matemática
@@ -49,12 +87,13 @@ class Parser {
 
             return new Expression.Binary(new Expression.Literal(firstToken), operator, new Expression.Literal(secondToken));
         } else {
+
             return new Expression.Literal(firstToken);
         }
     }
 
 
-    private Condition parseCondition() {
+    private Condition parseCondition()  throws SyntaxException {
         Expression leftOperand = parseExpression(); //Comprueba que el operando de la izquierda sea una expresión
 
         // Se aegura de que el siguiente token es un operador
@@ -65,7 +104,7 @@ class Parser {
 
             operator = advance();
         } else {
-            throw new ParseException("Expected comparison operator");
+            throw new SyntaxException("Expected comparison operator" + peek().getValue() + " at line " + peek().getLineNumber()); // Error si no es un operador
         }
 
         Expression rightOperand = parseExpression(); // Comprueba que el operando de la derecha sea una expresión
@@ -75,7 +114,7 @@ class Parser {
 
 
 
-    private void parseIfStatement() {
+    private void parseIfStatement()  throws SyntaxException {
         consume(Token.Lexeme.IF); // Consumir 'if'
         Condition condition = parseCondition(); // Parsear condición
         consume(Token.Lexeme.THEN); // Consumir 'then'
@@ -92,10 +131,11 @@ class Parser {
         }
 
         consume(Token.Lexeme.ENDIF); // Consumir 'endif'
+        System.out.println("Valid if then statement");
     }
 
 
-    private void parseWhileStatement() {
+    private void parseWhileStatement()  throws SyntaxException {
         consume(Token.Lexeme.WHILE); // Consumir 'while'
         Condition condition = parseCondition(); // Parsear condición
         consume(Token.Lexeme.DO); // Consumir 'do'
@@ -105,6 +145,7 @@ class Parser {
         }
 
         consume(Token.Lexeme.ENDWHILE); // Consumir 'endwhile'
+        System.out.println("Valid while statement");
     }
 
 
@@ -130,26 +171,21 @@ class Parser {
         return peek().getLexeme() == lexeme;
     }
 
-    private Token consume(Token.Lexeme expectedLexeme) {
+    private Token consume(Token.Lexeme expectedLexeme)  throws SyntaxException {
         if (check(expectedLexeme)) {
             return advance();
         }
-        throw new ParseException("Expected " + expectedLexeme + " but found " + peek().getType());
+        throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber());
     }
-    private Token consume(Token.Type expectedType) {
+    private Token consume(Token.Type expectedType) throws SyntaxException {
         if (checkType(expectedType)) {
             return advance();
         }
-        throw new ParseException("Expected " + expectedType + " but found " + peek().getType());
+        throw new SyntaxException("Expected " + expectedType + " but found " + peek().getType() + " at line " + peek().getLineNumber());
     }
+
     private boolean checkType(Token.Type type) {
         if (isAtEnd()) return false;
         return peek().getType() == type;
-    }
-
-    public class ParseException extends RuntimeException {
-        public ParseException(String message) {
-            super(message);
-        }
     }
 }
