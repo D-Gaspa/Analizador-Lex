@@ -7,7 +7,9 @@ public abstract class Expression {
 
         // Getter and other methods...
     }
-
+    /**
+     * Clase para representar una expresión binaria
+     */
     public static class Binary extends Expression {
         private final Expression left;
         private final Expression right;

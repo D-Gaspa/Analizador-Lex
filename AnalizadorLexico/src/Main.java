@@ -12,7 +12,7 @@ public class Main {
         final ArrayList<SyntaxException> errors = new ArrayList<>();
 
         // Entrada de ejemplo para el análisis léxico
-        String input1 = """
+        String input = """
                 a == b ;
                 if a < b then\s
                 a = a + 1 ;\s
@@ -20,7 +20,7 @@ public class Main {
                 endif\s
                 """;
 
-        String input = """
+        String input1 = """
                 while a < b do\s
                 if f == var then\s
                 b = c2 + 99 ;\s
@@ -41,14 +41,14 @@ public class Main {
 
         try {
             tokens = lex(input,errors);
-            System.out.println("Tokens: ");
+            System.out.println(" -------------------------------------  Tokens:  -----------------------------------------");
             for (Token token : tokens){
                 System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
             }
             /**
              * --------------------Analizador sintactico ----------------------
              * */
-            System.out.println("Syntax analysis: \n");
+            System.out.println("\n ------------------------------------------ Syntax analysis:  --------------------------------------------\n");
 
             // Parser initialization and syntax checking
             Parser parser = new Parser(tokens, errors);

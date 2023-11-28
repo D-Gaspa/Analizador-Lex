@@ -16,34 +16,41 @@ class Parser {
         this.errors = errors;
     }
 
+    /**
+     * Método para iniciar el análisis sintáctico
+     */
     public void parse()  throws SyntaxException{
         while (!isAtEnd()) {
             try {
                 parseStatement();
             } catch (SyntaxException e) {
-                errors.add(e); // Add error to the list and continue parsing
-                //advance();
+                errors.add(e); // Agrega error y continua con el analisis
                 synchronize();
             }
         }
     }
 
+    /**
+     * Método para sincronizar el analizador sintáctico
+     */
     private void synchronize() {
         while (!isAtEnd()) {
-
-            // Check if the current token is a good point to resume
+            // Chear un token de sincronización
             if (isAtStatementBoundary(peek())) {
-                return; // Found a good point to resume
+                return; // Se encuentra un buen punto para retomar
             }
 
-            advance(); // Continue to the next token
+            advance(); // Continua al siguiente token
         }
     }
 
+    /**
+     * Método para checar si el token es un punto clave
+     */
     private boolean isAtStatementBoundary(Token token) {
-        // Check if the token is a boundary of a statement
+        // Checa si el token es un punto clave de otro token
         if (token.getLexeme() == null) {
-            return false; // Handle null lexeme
+            return false; // No es un token clave
         }
         return switch (token.getLexeme()) {
             case IF, WHILE -> true;
@@ -51,7 +58,9 @@ class Parser {
         };
     }
 
-
+    /**
+     * Método para parsear una sentencia
+     */
     private void parseStatement()  throws SyntaxException {
         Token currentToken = peek();
         if (currentToken.getType() == Token.Type.VARIABLE) {
@@ -64,6 +73,10 @@ class Parser {
             }
         }
     }
+
+    /**
+     * Método para parsear una asignación
+     */
     private void parseAssignmentStatement()  throws SyntaxException {
         consume(Token.Type.VARIABLE);// Consumir el nombre de la variable
         consume(Token.Lexeme.ASIGN); // Consumir el operador '='
@@ -73,6 +86,9 @@ class Parser {
         System.out.println("Valid assignment statement");
     }
 
+    /**
+     * Método para parsear una expresión matematica
+     */
     private Expression parseExpression() {
         Token firstToken = advance(); // Avanza al siguiente token
 
@@ -90,7 +106,9 @@ class Parser {
         }
     }
 
-
+    /**
+     * Método para parsear una condición
+     */
     private Condition parseCondition()  throws SyntaxException {
         Expression leftOperand = parseExpression(); //Comprueba que el operando de la izquierda sea una expresión
 
@@ -111,7 +129,9 @@ class Parser {
     }
 
 
-
+    /**
+     * Método para parsear un bloque if-then-endif
+     */
     private void parseIfStatement()  throws SyntaxException {
         consume(Token.Lexeme.IF); // Consumir 'if'
         parseCondition(); // Parsear condición
@@ -132,7 +152,9 @@ class Parser {
         System.out.println("Valid if then statement");
     }
 
-
+    /**
+     * Método para parsear un bloque while-do  -endwhile
+     */
     private void parseWhileStatement()  throws SyntaxException {
         consume(Token.Lexeme.WHILE); // Consumir 'while'
         parseCondition(); // Parsear condición
@@ -146,29 +168,47 @@ class Parser {
         System.out.println("Valid while statement");
     }
 
-
+    /**
+     * Método para obtener el token actual
+     */
     private Token peek() {
         return tokens.get(currentPosition);
     }
 
+    /**
+     * Método para obtener el token anterior
+     */
     private Token previous() {
         return tokens.get(currentPosition - 1);
     }
 
+    /**
+     * Método para checar si se ha llegado al final de la lista de tokens
+     */
     private boolean isAtEnd() {
         return currentPosition >= tokens.size();
     }
 
+    /**
+     * Método para avanzar al siguiente token
+     */
     private Token advance() {
         if (!isAtEnd()) currentPosition++;
         return previous();
     }
 
+    /**
+     * Método para checar si el token actual es del tipo especificado
+     */
     private boolean check(Token.Lexeme lexeme) {
         if (isAtEnd()) return false;
         return peek().getLexeme() == lexeme;
     }
 
+    /**
+     * Método para checar si el token actual es del tipo especificado
+     * @param expectedLexeme El lexema esperado
+     */
     private Token consume(Token.Lexeme expectedLexeme)  throws SyntaxException {
         if (check(expectedLexeme)) {
             return advance();
@@ -176,11 +216,19 @@ class Parser {
         throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
     }
 
+    /**
+     * Método para checar si el token actual es del tipo especificado
+     * @param type El tipo de token a checar
+     */
     private boolean checkType(Token.Type type) {
         if (isAtEnd()) return false;
         return peek().getType() == type;
     }
 
+    /**
+     * Método para checar si el token actual es del tipo especificado
+     * @param expectedType El tipo de token esperado
+     */
     private Token consume(Token.Type expectedType) throws SyntaxException {
         if (checkType(expectedType)) {
             return advance();
