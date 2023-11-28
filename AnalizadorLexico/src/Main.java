@@ -14,7 +14,7 @@ public class Main {
         // Entrada de ejemplo para el análisis léxico
         String input1 = """
                 a == b ;
-                if a < b \s
+                if a < b then\s
                 a = a + 1 ;\s
                 b = 2+7) * 3- ; \s
                 endif\s
@@ -75,24 +75,24 @@ public class Main {
      */
     private static ArrayList<Token> lex(String input, ArrayList<SyntaxException> errors) throws SyntaxException {
         final ArrayList<Token> tokens = new ArrayList<>();
-        String[] lines = input.split("\\r?\\n"); // Split the input into lines
+        String[] lines = input.split("\\r?\\n"); // Separa la entrada en líneas
         int lineNumber = 0;
 
         for (String line : lines) {
-            lineNumber++; // Increment the line number for each new line
+            lineNumber++; // Incrementa el número de línea de cada token
             StringTokenizer st = new StringTokenizer(line, " \t", true); // Tokenize the line
 
             while (st.hasMoreTokens()) {
                 String word = st.nextToken();
 
                 if (word.trim().isEmpty()) {
-                    continue; // Skip whitespace
+                    continue; // Salta espacios
                 }
 
 
                 boolean matched = false;
 
-                // Process each type of token except VARIABLE
+                // Procesamiento de todos los tokens menos VARIABLE
                 for (Token.Type tokenType : Token.Type.values()) {
                     if (tokenType == Token.Type.VARIABLE) {
                         continue;
@@ -112,7 +112,7 @@ public class Main {
                     }
                 }
 
-                // Final check for the VARIABLE type
+                // Checar por lexemas de tipo variable
                 if (!matched) {
                     Pattern variablePattern = Pattern.compile(Token.Type.VARIABLE.pattern);
                     Matcher variableMatcher = variablePattern.matcher(word);
@@ -123,7 +123,7 @@ public class Main {
                         token.setLineNumber(lineNumber);
                         tokens.add(token);
                     } else {
-                        // If no valid type of token is found, throw an exception
+                        // Si no es token valido se arroja un error
                         errors.add(new SyntaxException("Token " + word +" not recognized " + " at line " + lineNumber , lineNumber ));
                     }
                 }

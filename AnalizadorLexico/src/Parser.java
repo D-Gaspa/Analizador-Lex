@@ -65,9 +65,9 @@ class Parser {
         }
     }
     private void parseAssignmentStatement()  throws SyntaxException {
-        // Consumir el nombre de la variable
+        consume(Token.Type.VARIABLE);// Consumir el nombre de la variable
         consume(Token.Lexeme.ASIGN); // Consumir el operador '='
-        // Parsear la expresión a la derecha del '='
+        parseExpression(); // Parsear la expresión a la derecha del '='
         consume(Token.Lexeme.SEMICOLON); // Consumir el ';'
 
         System.out.println("Valid assignment statement");
@@ -114,7 +114,7 @@ class Parser {
 
     private void parseIfStatement()  throws SyntaxException {
         consume(Token.Lexeme.IF); // Consumir 'if'
-        // Parsear condición
+        parseCondition(); // Parsear condición
         consume(Token.Lexeme.THEN); // Consumir 'then'
 
         while (!check(Token.Lexeme.ENDIF) && !check(Token.Lexeme.ELSE)) {
@@ -174,5 +174,17 @@ class Parser {
             return advance();
         }
         throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
+    }
+
+    private boolean checkType(Token.Type type) {
+        if (isAtEnd()) return false;
+        return peek().getType() == type;
+    }
+
+    private Token consume(Token.Type expectedType) throws SyntaxException {
+        if (checkType(expectedType)) {
+            return advance();
+        }
+        throw new SyntaxException("Expected " + expectedType + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
     }
 }

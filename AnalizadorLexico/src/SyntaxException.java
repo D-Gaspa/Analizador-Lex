@@ -1,5 +1,5 @@
 public class SyntaxException extends Throwable {
-    private int lineErrorNumber;
+    private final int lineErrorNumber;
     public SyntaxException(String message, int lineNumber) {
         super("Syntax error:" + message);
         this.lineErrorNumber = lineNumber;
