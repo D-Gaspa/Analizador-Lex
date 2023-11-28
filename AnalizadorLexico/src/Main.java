@@ -8,12 +8,12 @@ public class Main {
      * Método principal para iniciar el análisis léxico.
      * @param args Argumentos de línea de comandos (no utilizados).
      */
-    public static void main(String[] args) throws SyntaxException {
+    public static void main(String[] args)  {
         final ArrayList<SyntaxException> errors = new ArrayList<>();
 
         // Entrada de ejemplo para el análisis léxico
-        String input = "a = b ;\n" +
-                "if a < b  then \n" +
+        String input = "a == b ;\n" +
+                "if a < b  \n" +
                 "a = a + 1 ; \n" +
                 "b = 2+7) * 3- ;  \n" +
                 "endif \n";
@@ -33,8 +33,9 @@ public class Main {
 
         try {
             tokens = lex(input,errors);
+            System.out.println("Tokens: ");
             for (Token token : tokens){
-                //System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
+                System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
             }
 
             // Parser initialization and syntax checking
@@ -135,11 +136,4 @@ public class Main {
         }
     }
 
-    // Los siguientes métodos podrían ser útiles para futuras expansiones o verificaciones adicionales
-    private static boolean isConditionalOperand(String word) {
-        return word.matches("\\b(if|then|endif|else|while|do|endwhile)\\b");
-    }
-    private static boolean isComparisonOperand(String word) {
-        return word.matches("==|<|<=|>|>=|<>");
-    }
 }

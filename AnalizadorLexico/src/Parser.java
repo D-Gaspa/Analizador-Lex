@@ -6,8 +6,8 @@ import java.util.List;
  */
 
 class Parser {
-    private List<Token> tokens;
-    private ArrayList<SyntaxException> errors;
+    private final List<Token> tokens;
+    private final ArrayList<SyntaxException> errors;
     private int currentPosition = 0;
 
     // Constructores y metódos
@@ -45,13 +45,10 @@ class Parser {
         if (token.getLexeme() == null) {
             return false; // Handle null lexeme
         }
-        switch (token.getLexeme()) {
-            case IF:
-            case WHILE:
-                return true;
-            default:
-                return false;
-        }
+        return switch (token.getLexeme()) {
+            case IF, WHILE -> true;
+            default -> false;
+        };
     }
 
 
@@ -68,14 +65,15 @@ class Parser {
         }
     }
     private void parseAssignmentStatement()  throws SyntaxException {
-        Token variableToken = consume(Token.Type.VARIABLE); // Consumir el nombre de la variable
+        // Consumir el nombre de la variable
         consume(Token.Lexeme.ASIGN); // Consumir el operador '='
-        Expression expression = parseExpression(); // Parsear la expresión a la derecha del '='
+        // Parsear la expresión a la derecha del '='
         consume(Token.Lexeme.SEMICOLON); // Consumir el ';'
+
         System.out.println("Valid assignment statement");
     }
 
-    private Expression parseExpression() throws SyntaxException {
+    private Expression parseExpression() {
         Token firstToken = advance(); // Avanza al siguiente token
 
         // Checa que sea una operación matemática
@@ -116,7 +114,7 @@ class Parser {
 
     private void parseIfStatement()  throws SyntaxException {
         consume(Token.Lexeme.IF); // Consumir 'if'
-        Condition condition = parseCondition(); // Parsear condición
+        // Parsear condición
         consume(Token.Lexeme.THEN); // Consumir 'then'
 
         while (!check(Token.Lexeme.ENDIF) && !check(Token.Lexeme.ELSE)) {
@@ -137,7 +135,7 @@ class Parser {
 
     private void parseWhileStatement()  throws SyntaxException {
         consume(Token.Lexeme.WHILE); // Consumir 'while'
-        Condition condition = parseCondition(); // Parsear condición
+        parseCondition(); // Parsear condición
         consume(Token.Lexeme.DO); // Consumir 'do'
 
         while (!check(Token.Lexeme.ENDWHILE)) {
@@ -176,16 +174,5 @@ class Parser {
             return advance();
         }
         throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber());
-    }
-    private Token consume(Token.Type expectedType) throws SyntaxException {
-        if (checkType(expectedType)) {
-            return advance();
-        }
-        throw new SyntaxException("Expected " + expectedType + " but found " + peek().getType() + " at line " + peek().getLineNumber());
-    }
-
-    private boolean checkType(Token.Type type) {
-        if (isAtEnd()) return false;
-        return peek().getType() == type;
     }
 }
