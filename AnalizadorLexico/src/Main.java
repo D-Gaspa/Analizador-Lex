@@ -14,7 +14,7 @@ public class Main {
         // Entrada de ejemplo para el análisis léxico
         String input = """
                 a == b ;
-                if a < b then\s
+                if ( a < b ) then\s
                 a = a + 1 ;\s
                 b = 2+7) * 3- ; \s
                 endif\s

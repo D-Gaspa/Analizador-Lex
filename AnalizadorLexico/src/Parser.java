@@ -79,7 +79,7 @@ class Parser {
      */
     private void parseAssignmentStatement()  throws SyntaxException {
         consume(Token.Type.VARIABLE);// Consumir el nombre de la variable
-        consume(Token.Lexeme.ASIGN); // Consumir el operador '='
+        consume(Token.Lexeme.ASSIGN); // Consumir el operador '='
         parseExpression(); // Parsear la expresión a la derecha del '='
         consume(Token.Lexeme.SEMICOLON); // Consumir el ';'
 
@@ -110,6 +110,7 @@ class Parser {
      * Método para parsear una condición
      */
     private Condition parseCondition()  throws SyntaxException {
+        consume(Token.Lexeme.OPEN_PARENTHESIS);
         Expression leftOperand = parseExpression(); //Comprueba que el operando de la izquierda sea una expresión
 
         // Se aegura de que el siguiente token es un operador
@@ -124,6 +125,7 @@ class Parser {
         }
 
         Expression rightOperand = parseExpression(); // Comprueba que el operando de la derecha sea una expresión
+        consume(Token.Lexeme.CLOSURE_PARENTHESIS);
 
         return new Condition(leftOperand, operator, rightOperand);
     }
