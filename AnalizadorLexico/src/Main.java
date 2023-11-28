@@ -12,24 +12,32 @@ public class Main {
         final ArrayList<SyntaxException> errors = new ArrayList<>();
 
         // Entrada de ejemplo para el análisis léxico
-        String input = "a == b ;\n" +
-                "if a < b  \n" +
-                "a = a + 1 ; \n" +
-                "b = 2+7) * 3- ;  \n" +
-                "endif \n";
+        String input1 = """
+                a == b ;
+                if a < b \s
+                a = a + 1 ;\s
+                b = 2+7) * 3- ; \s
+                endif\s
+                """;
 
-        String input1 = "while a < b do \n" +
-                "if f == var then \n" +
-                "b = c2 + 99 ; \n" +
-                "else \n" +
-                "b = 37 ; \n" +
-                "endif \n" +
-                "endwhile";
+        String input = """
+                while a < b do\s
+                if f == var then\s
+                b = c2 + 99 ;\s
+                else\s
+                b = 37 ;\s
+                endif\s
+                endwhile""";
+
         System.out.println("Input: " + input);
 
         // Proceso de análisis léxico y obtención de tokens
 
         ArrayList<Token> tokens;
+
+        /**
+         * -------------------- Tokenización ----------------------
+         * */
 
         try {
             tokens = lex(input,errors);
@@ -37,6 +45,10 @@ public class Main {
             for (Token token : tokens){
                 System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
             }
+            /**
+             * --------------------Analizador sintactico ----------------------
+             * */
+            System.out.println("Syntax analysis: \n");
 
             // Parser initialization and syntax checking
             Parser parser = new Parser(tokens, errors);
@@ -44,14 +56,13 @@ public class Main {
                 parser.parse(); // Parsing the token list
             } catch (SyntaxException e) {
                 errors.add(e);
-                //System.out.println("Error in parsing: " + e.getMessage());
             }
         } catch (SyntaxException e) {
             errors.add(e);
-            //System.out.println("Error in tokenization: " + e.getMessage());
         }
 
 
+        errors.sort((e1, e2) -> Integer.compare(e1.getLineErrorNumber(), e2.getLineErrorNumber()));
         for (SyntaxException error : errors) {
             System.out.println(error.getMessage());
         }
@@ -113,7 +124,7 @@ public class Main {
                         tokens.add(token);
                     } else {
                         // If no valid type of token is found, throw an exception
-                        errors.add(new SyntaxException("Syntax error: " + word + " at line " + lineNumber + " (token not recognized)"));
+                        errors.add(new SyntaxException("Token " + word +" not recognized " + " at line " + lineNumber , lineNumber ));
                     }
                 }
             }

@@ -60,7 +60,7 @@ class Parser {
             switch (currentToken.getLexeme()) {
                 case WHILE -> parseWhileStatement();
                 case IF -> parseIfStatement();
-                default -> throw new SyntaxException("Syntax error: Unexpected token " + currentToken.getValue() + " at line " + currentToken.getLineNumber());
+                default -> throw new SyntaxException("Syntax error: Unexpected token " + currentToken.getValue() + " at line " + currentToken.getLineNumber(),  currentToken.getLineNumber());
             }
         }
     }
@@ -102,7 +102,7 @@ class Parser {
 
             operator = advance();
         } else {
-            throw new SyntaxException("Expected comparison operator" + peek().getValue() + " at line " + peek().getLineNumber()); // Error si no es un operador
+            throw new SyntaxException("Expected comparison operator" + peek().getValue() + " at line " + peek().getLineNumber(), peek().getLineNumber()); // Error si no es un operador
         }
 
         Expression rightOperand = parseExpression(); // Comprueba que el operando de la derecha sea una expresión
@@ -173,6 +173,6 @@ class Parser {
         if (check(expectedLexeme)) {
             return advance();
         }
-        throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber());
+        throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
     }
 }

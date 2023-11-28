@@ -1,10 +1,8 @@
 public abstract class Expression {
 
     public static class Literal extends Expression {
-        private final Token value;
 
         public Literal(Token value) {
-            this.value = value;
         }
 
         // Getter and other methods...
