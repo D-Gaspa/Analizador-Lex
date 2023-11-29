@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Clase parser
@@ -36,7 +37,7 @@ class Parser {
     private void synchronize() {
         while (!isAtEnd()) {
             // Chear un token de sincronización
-            if (isAtStatementBoundary(peek())) {
+            if (isAtStatementBoundary(Objects.requireNonNull(peek()))) {
                 return; // Se encuentra un buen punto para retomar
             }
 
@@ -63,6 +64,7 @@ class Parser {
      */
     private void parseStatement()  throws SyntaxException {
         Token currentToken = peek();
+        assert currentToken != null;
         if (currentToken.getType() == Token.Type.VARIABLE) {
             parseAssignmentStatement();
         } else {
@@ -79,11 +81,11 @@ class Parser {
      */
     private void parseAssignmentStatement()  throws SyntaxException {
         consume(Token.Type.VARIABLE);// Consumir el nombre de la variable
-        consume(Token.Lexeme.ASIGN); // Consumir el operador '='
+        consume(Token.Lexeme.ASSIGN); // Consumir el operador '='
         parseExpression(); // Parsear la expresión a la derecha del '='
         consume(Token.Lexeme.SEMICOLON); // Consumir el ';'
 
-        System.out.println("Valid assignment statement");
+        System.out.println("Valid assignment statement at line " + previous().getLineNumber());
     }
 
     /**
@@ -92,9 +94,13 @@ class Parser {
     private Expression parseExpression() {
         Token firstToken = advance(); // Avanza al siguiente token
 
+        if (firstToken.getLexeme() == Token.Lexeme.ENDIF || firstToken.getLexeme() == Token.Lexeme.ENDWHILE) {
+            return null;
+        }
+
         // Checa que sea una operación matemática
-        if (peek().getLexeme() == Token.Lexeme.PLUS || peek().getLexeme() == Token.Lexeme.MINUS ||
-                peek().getLexeme() == Token.Lexeme.MULTIPLICATION || peek().getLexeme() == Token.Lexeme.DIVISION) {
+        if (Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.PLUS || Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.MINUS ||
+                Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.MULTIPLICATION || Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.DIVISION) {
 
             Token operator = advance();
             Token secondToken = advance();
@@ -110,20 +116,22 @@ class Parser {
      * Método para parsear una condición
      */
     private Condition parseCondition()  throws SyntaxException {
+        consume(Token.Lexeme.OPEN_PARENTHESIS);
         Expression leftOperand = parseExpression(); //Comprueba que el operando de la izquierda sea una expresión
 
-        // Se aegura de que el siguiente token es un operador
+        // Se asegura de que el siguiente token es un operador
         Token operator;
-        if (peek().getLexeme() == Token.Lexeme.LESS_THAN || peek().getLexeme() == Token.Lexeme.LESS_EQUAL_THAN ||
-                peek().getLexeme() == Token.Lexeme.GREATER_THAN || peek().getLexeme() == Token.Lexeme.GRATER_EQUAL_THAN ||
-                peek().getLexeme() == Token.Lexeme.EQUAL_TO) {
+        if (Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.LESS_THAN || Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.LESS_EQUAL_THAN ||
+                Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.GREATER_THAN || Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.GRATER_EQUAL_THAN ||
+                Objects.requireNonNull(peek()).getLexeme() == Token.Lexeme.EQUAL_TO) {
 
             operator = advance();
         } else {
-            throw new SyntaxException("Expected comparison operator" + peek().getValue() + " at line " + peek().getLineNumber(), peek().getLineNumber()); // Error si no es un operador
+            throw new SyntaxException("Expected comparison operator" + Objects.requireNonNull(peek()).getValue() + " at line " + Objects.requireNonNull(peek()).getLineNumber(), Objects.requireNonNull(peek()).getLineNumber()); // Error si no es un operador
         }
 
         Expression rightOperand = parseExpression(); // Comprueba que el operando de la derecha sea una expresión
+        consume(Token.Lexeme.CLOSURE_PARENTHESIS);
 
         return new Condition(leftOperand, operator, rightOperand);
     }
@@ -149,7 +157,7 @@ class Parser {
         }
 
         consume(Token.Lexeme.ENDIF); // Consumir 'endif'
-        System.out.println("Valid if then statement");
+        System.out.println("Valid if then statement at line " + previous().getLineNumber());
     }
 
     /**
@@ -165,13 +173,14 @@ class Parser {
         }
 
         consume(Token.Lexeme.ENDWHILE); // Consumir 'endwhile'
-        System.out.println("Valid while statement");
+        System.out.println("Valid while statement at line " + previous().getLineNumber());
     }
 
     /**
      * Método para obtener el token actual
      */
     private Token peek() {
+        if (isAtEnd()) return null;
         return tokens.get(currentPosition);
     }
 
@@ -202,7 +211,7 @@ class Parser {
      */
     private boolean check(Token.Lexeme lexeme) {
         if (isAtEnd()) return false;
-        return peek().getLexeme() == lexeme;
+        return Objects.requireNonNull(peek()).getLexeme() == lexeme;
     }
 
     /**
@@ -213,8 +222,12 @@ class Parser {
         if (check(expectedLexeme)) {
             return advance();
         }
-        throw new SyntaxException("Expected " + expectedLexeme + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
+        if (peek() == null) {
+            throw new SyntaxException("Expected " + expectedLexeme, 0);
+        }
+        throw new SyntaxException("Expected " + expectedLexeme + " but found " + Objects.requireNonNull(peek()).getType() + " at line " + Objects.requireNonNull(peek()).getLineNumber(), Objects.requireNonNull(peek()).getLineNumber());
     }
+
 
     /**
      * Método para checar si el token actual es del tipo especificado
@@ -222,7 +235,7 @@ class Parser {
      */
     private boolean checkType(Token.Type type) {
         if (isAtEnd()) return false;
-        return peek().getType() == type;
+        return Objects.requireNonNull(peek()).getType() == type;
     }
 
     /**
@@ -233,6 +246,6 @@ class Parser {
         if (checkType(expectedType)) {
             return advance();
         }
-        throw new SyntaxException("Expected " + expectedType + " but found " + peek().getType() + " at line " + peek().getLineNumber(), peek().getLineNumber());
+        throw new SyntaxException("Expected " + expectedType + " but found " + Objects.requireNonNull(peek()).getType() + " at line " + Objects.requireNonNull(peek()).getLineNumber(), Objects.requireNonNull(peek()).getLineNumber());
     }
 }

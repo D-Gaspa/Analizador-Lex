@@ -1,53 +1,49 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    /**
-     * Método principal para iniciar el análisis léxico.
-     * @param args Argumentos de línea de comandos (no utilizados).
-     */
-    public static void main(String[] args)  {
-        final ArrayList<SyntaxException> errors = new ArrayList<>();
+    // Create method that runs examples given in a text file
+    public static void runExamples(String fileName) {
+        String input = "";
 
-        // Entrada de ejemplo para el análisis léxico
-        String input = """
-                a == b ;
-                if a < b then\s
-                a = a + 1 ;\s
-                b = 2+7) * 3- ; \s
-                endif\s
-                """;
+        // Read file
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line).append(System.lineSeparator()); // Preserve newlines
+            }
+            input = stringBuilder.toString();
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return;
+        }
 
-        String input1 = """
-                while a < b do\s
-                if f == var then\s
-                b = c2 + 99 ;\s
-                else\s
-                b = 37 ;\s
-                endif\s
-                endwhile""";
+        // Print the file name
+        System.out.println("\n ------------------------------------------ " + fileName + " --------------------------------------------\n");
 
+        // Print the input
         System.out.println("Input: " + input);
 
-        // Proceso de análisis léxico y obtención de tokens
-
+        // Run the lexical analysis and syntax analysis
         ArrayList<Token> tokens;
 
-        /**
-         * -------------------- Tokenización ----------------------
-         * */
+        final ArrayList<SyntaxException> errors = new ArrayList<>();
 
+        // Lexical analysis
         try {
             tokens = lex(input,errors);
             System.out.println(" -------------------------------------  Tokens:  -----------------------------------------");
             for (Token token : tokens){
                 System.out.println(" Value: " + token.getValue() + " Type: " + token.getType() + " Lexeme: " + token.getLexeme());
             }
-            /**
-             * --------------------Analizador sintactico ----------------------
-             * */
+            // Syntax analysis
             System.out.println("\n ------------------------------------------ Syntax analysis:  --------------------------------------------\n");
 
             // Parser initialization and syntax checking
@@ -61,11 +57,20 @@ public class Main {
             errors.add(e);
         }
 
-
-        errors.sort((e1, e2) -> Integer.compare(e1.getLineErrorNumber(), e2.getLineErrorNumber()));
+        errors.sort(Comparator.comparingInt(SyntaxException::getLineErrorNumber));
         for (SyntaxException error : errors) {
             System.out.println(error.getMessage());
         }
+    }
+
+    /**
+     * Método principal para iniciar el análisis léxico.
+     * @param args Argumentos de línea de comandos (no utilizados).
+     */
+    public static void main(String[] args)  {
+        runExamples("input1.txt");
+        runExamples("input2.txt");
+        runExamples("input3.txt");
     }
 
     /**
@@ -123,13 +128,12 @@ public class Main {
                         token.setLineNumber(lineNumber);
                         tokens.add(token);
                     } else {
-                        // Si no es token valido se arroja un error
+                        // Si no es token válido se arroja un error
                         errors.add(new SyntaxException("Token " + word +" not recognized " + " at line " + lineNumber , lineNumber ));
                     }
                 }
             }
         }
-
         return tokens;
     }
 
@@ -146,5 +150,4 @@ public class Main {
             }
         }
     }
-
 }

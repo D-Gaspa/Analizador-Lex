@@ -79,7 +79,7 @@ public class Token {
         CONDITIONAL_OPERAND("\\b(if|then|endif|else)\\b"), // Representa un operando condicional
         BOOLEAN_VALUE("\\b(true|false)\\b"),    // Representa un valor booleano
         LOOP("\\b(while|do|endwhile)\\b"),      // Representa un operador de bucle
-
+        PARENTHESIS("\\(|\\)"),
         END(";"),                     // Representa un operador de fin de programa
         VARIABLE("(?!\\b(if|then|endif|else|while|do|endwhile|true|false)\\b)[a-zA-Z_][a-zA-Z0-9_]*"); // Representa una variable
 
@@ -94,6 +94,8 @@ public class Token {
      * Enumeración de los diferentes lexemas que pueden ser asociados a los tokens.
      */
     enum Lexeme{
+        OPEN_PARENTHESIS ("("),
+        CLOSURE_PARENTHESIS(")"),
         WHILE ("while"),
         DO ("do"),
         IF ("if"),
@@ -101,7 +103,7 @@ public class Token {
         ELSE ("else"),
         ENDIF("endif"),
         ENDWHILE("endwhile"),
-        ASIGN("="),
+        ASSIGN("="),
         PLUS("+"),
         MINUS("-"),
         MULTIPLICATION("*"),
@@ -118,5 +120,4 @@ public class Token {
             this.lexeme = l;
         }
     }
-
 }

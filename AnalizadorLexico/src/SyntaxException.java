@@ -8,7 +8,7 @@ public class SyntaxException extends Throwable {
      */
 
     public SyntaxException(String message, int lineNumber) {
-        super("Syntax error:" + message);
+        super("Syntax error: " + message);
         this.lineErrorNumber = lineNumber;
     }
 
