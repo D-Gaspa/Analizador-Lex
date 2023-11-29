@@ -8,7 +8,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    // Create method that runs examples given in a text file
+    /**
+     * Ejecuta los ejemplos de entrada y muestra los resultados.
+     * @param fileName Nombre del archivo de entrada.
+     */
     public static void runExamples(String fileName) {
         String input = "";
 
